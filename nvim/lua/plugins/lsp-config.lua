@@ -89,32 +89,41 @@ return {
 
   -- LSP config
   {
-    "neovim/nvim-lspconfig",
-    config = function()
-      local lspconfig = require("lspconfig")
-      local capabilities = require("cmp_nvim_lsp").default_capabilities()
+  "neovim/nvim-lspconfig",
+  config = function()
+    local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-      -- General servers
-      local servers = { "pyright", "lua_ls", "cssls", "html", "ts_ls", "bashls", "omnisharp" }
-      for _, server in ipairs(servers) do
-        lspconfig[server].setup({
-          capabilities = capabilities,
-        })
-      end
+    -- Example: override defaults for a server
+    vim.lsp.config("lua_ls", {
+      capabilities = capabilities,
+      --- you can add other server-specific opts here
+    })
 
-      -- Java (jdtls)
-      lspconfig.jdtls.setup({
-        capabilities = capabilities,
-        cmd = { "jdtls", "-data", "/home/omartech/Personal_Projects/Java_Course" },
-        root_dir = lspconfig.util.root_pattern(".git", "pom.xml", "build.gradle"),
-      })
+    -- Enable the server
+    vim.lsp.enable("lua_ls")
 
-      -- Keymaps
-      vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
-      vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
-      vim.keymap.set("n", "<leader>gr", vim.lsp.buf.references, {})
-      vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, {})
+    -- Do this for all other servers
+    local servers = {
+      "pyright", "cssls", "html", "ts_ls", "bashls", "omnisharp",
+    }
+    for _, srv in ipairs(servers) do
+      vim.lsp.enable(srv)
+      vim.lsp.config(srv, { capabilities = capabilities })
     end
-  }
-}
 
+    -- For Java, special case
+    vim.lsp.config("jdtls", {
+      cmd = { "jdtls", "-data", "/home/omartech/Personal_Projects/Java_Course" },
+      root_dir = require("lspconfig.util").root_pattern(".git", "pom.xml", "build.gradle"),
+      capabilities = capabilities,
+    })
+    vim.lsp.enable("jdtls")
+
+    -- Keymaps (same as before)
+    vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
+    vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
+    vim.keymap.set("n", "<leader>gr", vim.lsp.buf.references, {})
+    vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, {})
+  end
+}
+  }
